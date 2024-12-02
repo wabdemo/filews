@@ -18,7 +18,7 @@ RUN mkdir -p /app/uploads
 COPY . .
 
 # Expose WebSocket port
-EXPOSE 8080
+EXPOSE 8081
 
 # Run the server
 CMD ["python", "server.py"]
