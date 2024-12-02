@@ -164,11 +164,11 @@ async def main():
     await http_site.start()
 
     # Set up the WebSocket server
-    websocket_server = await websockets.serve(handle_websocket_connection, "0.0.0.0", 8081)
+    websocket_server = await websockets.serve(handle_websocket_connection, "0.0.0.0", 4873)
 
     logger.info("Servers started:")
     logger.info("HTTP server running at: http://0.0.0.0:8080")
-    logger.info("WebSocket server running at: ws://0.0.0.0:8081")
+    logger.info("WebSocket server running at: ws://0.0.0.0:4873")
 
     # Keep the application running
     await asyncio.Future()

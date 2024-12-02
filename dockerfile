@@ -19,7 +19,8 @@ COPY . .
 
 # Expose WebSocket port
 EXPOSE 8080
-EXPOSE 8081
+# EXPOSE 8081
+EXPOSE 4873
 
 # Run the server
 CMD ["python", "server.py"]
