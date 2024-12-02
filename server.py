@@ -167,7 +167,7 @@ async def main():
     websocket_server = await websockets.serve(handle_websocket_connection, "0.0.0.0", 4873)
 
     logger.info("Servers started:")
-    logger.info("HTTP server running at: http://0.0.0.0:8080")
+    logger.info("HTTP server running at: https://0.0.0.0:8080")
     logger.info("WebSocket server running at: ws://0.0.0.0:4873")
 
     # Keep the application running

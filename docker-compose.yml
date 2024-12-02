@@ -4,11 +4,14 @@ services:
   webserver:
     build: .
     ports:
+      - "443:443"
       - "80:8080"
       - "4873:4873"
     volumes:
       - ./uploads:/app/uploads
       - ./index.html:/app/index.html
+      - /etc/ssl/certs:/etc/ssl/certs # Mount the certificate directory
+      - /etc/ssl/private:/etc/ssl/private # Mount the private key directory
     restart: unless-stopped
     logging:
       driver: "json-file"

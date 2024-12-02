@@ -7,6 +7,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -17,10 +19,16 @@ RUN mkdir -p /app/uploads
 # Copy all project files
 COPY . .
 
-# Expose WebSocket port
 EXPOSE 8080
-# EXPOSE 8081
 EXPOSE 4873
+EXPOSE 80 443
 
-# Run the server
-CMD ["python", "server.py"]
+# Install Nginx
+
+# Copy Nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expose HTTP and HTTPS ports
+
+# Start Nginx and your application
+CMD service nginx start && python server.py
