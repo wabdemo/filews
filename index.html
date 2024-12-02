@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>File Transfer WebSocket</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 p-6">
+    <div class="max-w-xl mx-auto bg-white p-6 rounded-lg shadow-md">
+      <h1 class="text-2xl font-bold mb-4">WebSocket File Transfer</h1>
+
+      <div class="mb-4">
+        <input type="file" id="fileInput" class="w-full p-2 border rounded" />
+      </div>
+
+      <button id="uploadBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Upload File</button>
+
+      <div class="mt-4 w-full bg-gray-200 rounded-full h-2.5">
+        <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+      </div>
+
+      <div class="mt-4">
+        <h2 class="font-semibold">Uploaded Files:</h2>
+        <ul id="fileList" class="list-disc pl-5"></ul>
+      </div>
+
+      <div id="status" class="mt-4 text-sm text-gray-600"></div>
+    </div>
+
+    <script>
+      const socket = new WebSocket(`ws://${window.location.hostname}:8081/ws`);
+      const fileInput = document.getElementById("fileInput");
+      const uploadBtn = document.getElementById("uploadBtn");
+      const statusDiv = document.getElementById("status");
+      const fileListUl = document.getElementById("fileList");
+      const progressBar = document.getElementById("progressBar");
+
+      // Configure socket for binary data
+      socket.binaryType = "arraybuffer";
+
+      let currentFileId = null;
+      const chunkSize = 1024 * 64; // 64KB chunks
+
+      socket.onopen = () => {
+        statusDiv.textContent = "Connected to WebSocket";
+        // Request file list on connection
+        socket.send(JSON.stringify({ type: "list_files" }));
+      };
+
+      socket.onmessage = async (event) => {
+        if (event.data instanceof ArrayBuffer) {
+          // Binary data received (not used in this implementation)
+          return;
+        }
+
+        const data = JSON.parse(event.data);
+
+        switch (data.type) {
+          case "file_list":
+            fileListUl.innerHTML = data.files.map((file) => `<li>${file}</li>`).join("");
+            break;
+          case "start_ack":
+            currentFileId = data.file_id;
+            statusDiv.textContent = "Starting file upload...";
+            break;
+          case "progress":
+            progressBar.style.width = `${data.progress}%`;
+            statusDiv.textContent = `Uploading: ${data.progress}%`;
+            break;
+          case "upload_complete":
+            progressBar.style.width = "100%";
+            statusDiv.textContent = "File uploaded successfully!";
+            socket.send(JSON.stringify({ type: "list_files" }));
+            break;
+          case "error":
+            statusDiv.textContent = `Error: ${data.message}`;
+            break;
+        }
+      };
+
+      uploadBtn.addEventListener("click", async () => {
+        const file = fileInput.files[0];
+        if (!file) {
+          statusDiv.textContent = "Please select a file";
+          return;
+        }
+
+        // Reset progress bar
+        progressBar.style.width = "0%";
+
+        // Start file transfer
+        socket.send(
+          JSON.stringify({
+            type: "start",
+            filename: file.name,
+            total_size: file.size,
+          })
+        );
+
+        // Prepare file reading and sending
+        const reader = new FileReader();
+        reader.onload = () => {
+          const data = new Uint8Array(reader.result);
+          for (let i = 0; i < data.length; i += chunkSize) {
+            socket.send(data.slice(i, i + chunkSize));
+          }
+
+          // Signal end of file transfer
+          socket.send(
+            JSON.stringify({
+              type: "end",
+              file_id: currentFileId,
+            })
+          );
+        };
+        reader.readAsArrayBuffer(file);
+      });
+
+      socket.onerror = (error) => {
+        statusDiv.textContent = `WebSocket Error: ${error}`;
+      };
+
+      socket.onclose = () => {
+        statusDiv.textContent = "WebSocket connection closed";
+      };
+    </script>
+  </body>
+</html>

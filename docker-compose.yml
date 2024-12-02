@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  webserver:
+    build: .
+    ports:
+      - "80:8081"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./index.html:/app/index.html
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"

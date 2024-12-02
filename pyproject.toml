@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "filews"
+version = "0.1.0"
+description = ""
+authors = ["Almaz <177681917+daxmonad@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+websockets = "12.0"
+aiohttp = "3.9.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
